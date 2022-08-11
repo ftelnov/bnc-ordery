@@ -8,7 +8,7 @@ use reqwest::header::HeaderMap;
 use serde::Serialize;
 use self::config::{RestBncCfg, BncAuthCfg};
 
-struct RestClient<'a> {
+pub struct RestClient<'a> {
     cfg: &'a RestBncCfg,
     client: HttpClient,
 }
@@ -20,10 +20,39 @@ impl<'a> RestClient<'a> {
         headers
     }
 
-    fn new(cfg: &'a RestBncCfg) -> Self {
+    pub fn new(cfg: &'a RestBncCfg) -> Self {
         Self {
             cfg,
             client: HttpClient::builder().default_headers(Self::auth_headers(&cfg.auth)).build().unwrap(),
+        }
+    }
+
+    /// Constructs full rest path from the given relative url.
+    fn full_path(&self, relative: &str) -> String {
+        format!("{}{}", self.cfg.baseurl, relative)
+    }
+}
+
+#[cfg(test)]
+mod test_utils {
+    use crate::config::AppCfg;
+    use crate::logging::tests::setup_test_logger;
+    use super::*;
+
+    pub struct RestTestCtx {
+        cfg: AppCfg,
+    }
+
+    impl RestTestCtx {
+        pub fn setup() -> Self {
+            setup_test_logger();
+            Self {
+                cfg: AppCfg::load_testnet().unwrap()
+            }
+        }
+
+        pub fn client(&self) -> RestClient {
+            RestClient::new(&self.cfg.bnc.rest)
         }
     }
 }

@@ -51,12 +51,9 @@ impl<'a, T: Serialize> SignedQuery<'a, T> {
         signature.update(serde_urlencoded::to_string(query)?.as_bytes());
         Ok(
             Self {
-                signature: String::from_utf8(
+                signature: hex::encode(
                     signature.finalize()
-                        .into_bytes()
-                        .to_vec())
-                    .map_err(|err| SigningError(format!("Could not convert signature back to string: {}", err))
-                    )?,
+                        .into_bytes()),
                 query,
             }
         )
