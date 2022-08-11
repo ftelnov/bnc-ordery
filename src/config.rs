@@ -2,6 +2,7 @@ use config::{Config, ConfigError, Environment, File};
 use derive_getters::Getters;
 use serde::Deserialize;
 use std::env;
+use crate::bnc::config::BncCfg;
 use crate::logging::LogCfg;
 // use crate::ui::config::UICfg;
 
@@ -13,6 +14,7 @@ pub struct AppCfg {
     #[serde(default)]
     pub logging: LogCfg,
 
+    pub bnc: BncCfg,
 }
 
 impl AppCfg {
@@ -38,6 +40,21 @@ impl AppCfg {
             .build()?;
 
         s.try_deserialize()
+    }
+}
+
+#[cfg(test)]
+pub mod test_utils {
+    use super::*;
+
+    impl AppCfg {
+        /// Load config as default one, then alters its endpoints so they are point to binance testnet.
+        pub fn load_testnet() -> Result<Self, ConfigError> {
+            let mut cfg = Self::load()?;
+            cfg.bnc.rest.baseurl = String::from("https://testnet.binance.vision");
+            cfg.bnc.ws.baseurl = String::from("wss://stream.binance.com:9443");
+            Ok(cfg)
+        }
     }
 }
 
